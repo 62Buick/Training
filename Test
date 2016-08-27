@@ -1,0 +1,73 @@
+//  This uses the Wiringpi software PWM to adjust the servo plugged into GPIO pin 16.
+
+#include <iostream>
+#include <wiringPi.h>
+#include <softPwm.h>
+#include <pigpio.h>
+
+using namespace std;
+
+// Initialize Control and set to nominal position.
+    int mower_on = 0;
+    int move_on = 0;
+    int direction = 0;// Uses azmuith relative to the orientation of the mower 0 is straight ahead, 90 is right, 270 is left. 
+    int safety = 0;
+    int left_detect = 0;
+    int right_detect = 0;
+    int front_detect = 0;
+    int rear_detect = 0;
+    int azimuth;
+    int currentposition = 15;   
+
+// Reads Sensors and Updates Controls
+int controlupdate (void)
+{
+	cout << "Hit Front : (0 or 1) ";
+	cin >> front_detect;
+	cout << "Hit Left : (0 or 1) ";
+	cin >> left_detect;
+	cout << "Hit Right : (0 or 1) ";
+	cin >> right_detect;
+	cout << "Hit Rear : (0 or 1) ";
+	cin >> rear_detect;
+        if(left_detect == 1) {mower_on = 0; direction = (direction + 5);}
+        if(right_detect == 1) {mower_on = 0; direction = (direction - 5);}
+        if(front_detect == 1) {mower_on = 0;move_on = 0;} 
+        if(rear_detect == 1) {mower_on = 0;}
+	return 0;
+}
+
+// Sets Steering Servo with the variable direction as the input.
+// Needs to be upgraded to allow for more granular control.
+int steering (int azimuth)
+{
+    int c;
+    cout << "Steering Module " << azimuth << endl;
+    if (azimuth >= 0 && azimuth <= 90){c = (90-azimuth)/10+6;}
+    if (azimuth >=270 && azimuth <= 359) {c = (360-azimuth)/10+15;}
+    if (azimuth > 90 && azimuth < 270) {c = 15;}
+    return c;
+}
+
+int main (void)
+{
+  wiringPiSetup () ;
+  pinMode (0,OUTPUT) ;
+  softPwmCreate (4,15,25);
+  while (direction >= 0)
+  {
+    controlupdate ();
+    currentposition = steering (direction);
+    softPwmWrite (4, currentposition);
+    cout << "Direction : " << direction << endl;
+    cout << "Servo Position : " << currentposition << endl;
+    cout << "Mower Power : " << mower_on << endl;
+    cout << "Move Power : " << move_on << endl;
+    cout << "Safety : " << safety << endl;
+    cout << "Left Obstruction Detect : " << left_detect << endl;
+    cout << "Right Obstruction Detect : " << right_detect << endl;
+    cout << "Front Obstruction Detect : " <<  front_detect << endl; 
+    cout << "Rear Obstruction Detect : " << rear_detect << endl;
+  }
+  return 0 ;
+}
