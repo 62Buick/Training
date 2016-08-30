@@ -1,9 +1,9 @@
 //  This uses the Wiringpi software PWM to adjust the servo plugged into GPIO pin 16.
 
-//  There is a error in the swteering module for 270-360 azimuth.
+//  8-27-16 There is a error in the swteering module for 270-360 azimuth.  8-30/16 Corrected.
 #include <iostream>
 #include <wiringPi.h>
-#include <softPwm.h>
+#include <softPwm.h> // May replace with pigpio in the future.
 #include <pigpio.h>
 
 using namespace std;
@@ -11,7 +11,7 @@ using namespace std;
 // Initialize Control and set to nominal position.
     int mower_on = 0;
     int move_on = 0;
-    int direction = 0;// Uses azmuith relative to the orientation of the mower 0 is straight ahead, 90 is right, 270 is left. 
+    int direction = 0;// Uses azmuith relative to the orientation of the mower 0 is straight ahead, 90 is right, 270 is left Range is 0 - 360. 
     int safety = 0;
     int left_detect = 0;
     int right_detect = 0;
@@ -36,6 +36,9 @@ int controlupdate (void)
 	cin >> rear_detect;
         if(left_detect == 1) {mower_on = 0; direction = (direction + 9);}
         if(right_detect == 1) {mower_on = 0; direction = (direction - 9);}
+        // Correct for 0 - 360 range limit for direction.
+        if(direction > 360 && direction < 500) {direction = (direction - 360);}
+        if(direction > 500) {direction = (direction - 65175);}
         if(front_detect == 1) {mower_on = 0;move_on = 0;} 
         if(rear_detect == 1) {mower_on = 0;safety = 1;}
         if(mower_on == 1) {digitalWrite (0, HIGH);}
@@ -60,8 +63,8 @@ int steering (int azimuth)
 int main (void)
 {
   wiringPiSetup ();
-  pinMode (0,OUTPUT);
-  pinMode (1,OUTPUT);
+  pinMode (0,OUTPUT); // Mower control
+  pinMode (1,OUTPUT); // Move control - Currently On - Off may want to use a Variable Drive of some for trimming
   softPwmCreate (4,15,25);
   while (safety == 0)
   {
@@ -78,5 +81,6 @@ int main (void)
     cout << "Right Obstruction Detect : " << right_detect << endl;
     cout << "Rear Obstruction Detect : " << rear_detect << endl;
   }
+  // Needs a reset plan if the safety goes off.
   return 0 ;
 }
