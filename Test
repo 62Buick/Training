@@ -37,8 +37,8 @@ int controlupdate (void)
         if(left_detect == 1) {mower_on = 0; direction = (direction + 9);}
         if(right_detect == 1) {mower_on = 0; direction = (direction - 9);}
         // Correct for 0 - 360 range limit for direction.
-        if(direction > 360 && direction < 500) {direction = (direction - 360);}
-        if(direction > 500) {direction = (direction - 65175);}
+        if(direction > 360) {direction = (direction - 360);}
+        if(direction < 0) {direction = (360 + direction);}
         if(front_detect == 1) {mower_on = 0;move_on = 0;} 
         if(rear_detect == 1) {mower_on = 0;safety = 1;}
         if(mower_on == 1) {digitalWrite (0, HIGH);}
@@ -56,7 +56,7 @@ int steering (int azimuth)
     cout << "Steering Module " << azimuth << endl;
     if (azimuth >= 0 && azimuth <= 90){c = (90-azimuth)/10+6;}
     if (azimuth >=270 && azimuth <= 359) {c = (360-azimuth)/10+15;}
-    if (azimuth > 90 && azimuth < 270) {c = 15;}
+    if (azimuth > 90 && azimuth < 270) {c = 15;direction = 0;}
     return c;
 }
 
