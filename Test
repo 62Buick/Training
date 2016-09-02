@@ -1,7 +1,8 @@
 //  This uses the Wiringpi software PWM to adjust the servo plugged into GPIO pin 16.
 
 //  8-27-16 There is a error in the steering module for 270-360 azimuth.  8-30/16 Corrected.
-// 9-1-16 Need to set up a plan to use the Arrows to steer and control the motor.
+// 9-1-16 Need to set up a plan to use the Arrows to steer and control the motor.  Plane to use keyread to feed data to the contolupdate.
+// 9-2-16 Need to test keybord reader.
 
 #include <iostream>
 #include <wiringPi.h>
@@ -23,15 +24,26 @@ using namespace std;
     int azimuth;
     int currentposition = 15;
     int keyboard_arrow; // Used to collect the getch() data from the keyboard.
+    int kbnumber; 
+    char kbchar;
+    
+// Read the keybord so that it can be used as a remote control up down for move left right to turn.  "z" to stop program.
+//  Assumes Up = 83; Down = 84; Left = 79; Right = 89; z = 46.  Need to confirm this.
+int readkey (void)
+{
+	if (kbhit() {kbchar = getch();kbnumb = kbchar;}
+	return (0);
+}
 
 // Reads Sensors and Updates Controls
 int controlupdate (void)
 {
         mower_on = 1;
         move_on = 1;
+        readkey ();
+        cout << "Results of Keyboard read" << kbchar << "   " << kbnumb << endl;
 	cout << "Hit Front : (0 or 1) ";
 	cin >> front_detect;
-	// keyboard_arrow = getch(c);
 	cout << "Hit Left : (0 or 1) ";
 	cin >> left_detect;
 	cout << "Hit Right : (0 or 1) ";
@@ -41,7 +53,6 @@ int controlupdate (void)
 	cin >> rear_detect;
         if(left_detect == 1) {mower_on = 0; direction = (direction + 9);}
         if(right_detect == 1) {mower_on = 0; direction = (direction - 9);}
-        // Correct for 0 - 360 range limit for direction.
         if(direction > 360) {direction = (direction - 360);}
         if(direction < 0) {direction = (360 + direction);}
         if(front_detect == 1) {mower_on = 0;move_on = 0;} 
