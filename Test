@@ -23,7 +23,6 @@ using namespace std;
     int rear_detect = 0;
     int azimuth;
     int currentposition = 15;
-    int keyboard_arrow; // Used to collect the getch() data from the keyboard.
     int kbnumber; 
     char kbchar;
     
@@ -42,6 +41,10 @@ int controlupdate (void)
         move_on = 1;
         readkey ();
         cout << "Results of Keyboard read" << kbchar << "   " << kbnumb << endl;
+        // front_detect = digitalRead(5);
+        // left_detect = digitalRead(6);
+        // right_detect = digitalRead(7);
+        // rear_detect = digitalRead(8);
 	cout << "Hit Front : (0 or 1) ";
 	cin >> front_detect;
 	cout << "Hit Left : (0 or 1) ";
@@ -51,8 +54,8 @@ int controlupdate (void)
 // Temp test set rear to 1 to exit, it will set safety to 1 which will end the while loop in main.
 	cout << "Hit Rear : (0 or 1) ";
 	cin >> rear_detect;
-        if(left_detect == 1) {mower_on = 0; direction = (direction + 9);}
-        if(right_detect == 1) {mower_on = 0; direction = (direction - 9);}
+        if(left_detect == 1||kbnumb == 89) {mower_on = 0; direction = (direction + 9);}
+        if(right_detect == 1||kbnumb == 79) {mower_on = 0; direction = (direction - 9);}
         if(direction > 360) {direction = (direction - 360);}
         if(direction < 0) {direction = (360 + direction);}
         if(front_detect == 1) {mower_on = 0;move_on = 0;} 
@@ -80,7 +83,15 @@ int main (void)
 {
   wiringPiSetup ();
   pinMode (0,OUTPUT); // Mower control
-  pinMode (1,OUTPUT); // Move control - Currently On - Off may want to use a Variable Drive of some for trimming
+  pinMode (1,OUTPUT); // Move control - Currently On - Off may want to use a Variable Drive of sorts for trimming
+  pinMode (5,INPUT); // Front Detect Pin Number - Normally Open switch to ground 
+  pinMode (6,INPUT); // Left Detect Pin Number - 
+  pinMode (7,INPUT); // Right Detect Pin Number - 
+  pinMode (8,INPUT); // Rear Detect Pin Number - 
+  pullUpDnControl (5,PUD_DOWN);
+  pullUpDnControl (6,PUD_DOWN);
+  pullUpDnControl (7,PUD_DOWN);
+  pullUpDnControl (8,PUD_DOWN);
   softPwmCreate (4,15,25);
   while (safety == 0)
   {
