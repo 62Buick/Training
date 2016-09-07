@@ -1,14 +1,13 @@
 //  This uses the Wiringpi software PWM to adjust the servo plugged into GPIO pin 16.
 
-//  8-27-16 There is a error in the steering module for 270-360 azimuth.  8-30/16 Corrected.
 // 9-1-16 Need to set up a plan to use the Arrows to steer and control the motor.  Plane to use keyread to feed data to the contolupdate.
-// 9-2-16 Need to test keybord reader.  9/6 working on using aswz for controls.
+// 9-2-16 Need to test keyboard reader.  9/6 working on using aswz for controls.
 
 #include <iostream>
 #include <wiringPi.h>
 #include <softPwm.h> // I may replace with pigpio in the future.  The resolution of the signal is low.
 #include <pigpio.h>
-// #include <ncurses.h> This is for the getch() to allow the keyboard to augment the detection switches for remote control.
+#include <time.h> // For time controls.
 
 using namespace std;
 
@@ -40,19 +39,19 @@ int controlupdate (void)
 {
         mower_on = 1;
         move_on = 1;
-        readkey ();
+        readkey (); // Make these 2 lines a note to switch to only detector control.
         cout << "Results of Keyboard read" << kbchar << "   " << kbnumber << endl;
         // front_detect = digitalRead(5);
         // left_detect = digitalRead(6);
-        // right_detect = digitalRead(7);
-        // rear_detect = digitalRead(8);
+        // right_detect = digitalRead(7);  
+        // rear_detect = digitalRead(8);  
 	cout << "Hit Front : (0 or 1) ";
 	cin >> front_detect;
 	cout << "Hit Left : (0 or 1) ";
 	cin >> left_detect;
 	cout << "Hit Right : (0 or 1) ";
 	cin >> right_detect;
-// Temp test set rear to 1 to exit, it will set safety to 1 which will end the while loop in main.
+// Temp test set rear to 1 to exit, it will set safety to 1 which will end the while loop in main.  Need to set a time to exit loop.
 	cout << "Hit Rear : (0 or 1) ";
 	cin >> rear_detect;
         if(left_detect == 1||kbnumber == 115) {mower_on = 0; direction = (direction + 9);}
@@ -70,6 +69,7 @@ int controlupdate (void)
 
 // Sets Steering Servo with the variable direction as the input.
 // Needs to be upgraded to allow for more granular control.
+
 int steering (int azimuth)
 {
     int c;
@@ -85,15 +85,15 @@ int main (void)
   wiringPiSetup ();
   pinMode (0,OUTPUT); // Mower control
   pinMode (1,OUTPUT); // Move control - Currently On - Off may want to use a Variable Drive of sorts for trimming
-  pinMode (5,INPUT); // Front Detect Pin Number - Normally Open switch to ground 
-  pinMode (6,INPUT); // Left Detect Pin Number - 
-  pinMode (7,INPUT); // Right Detect Pin Number - 
-  pinMode (8,INPUT); // Rear Detect Pin Number - 
+  pinMode (5,INPUT); // Front Detect Pin Number -  Normally Open switch to ground on // Hard Pin #29 
+  pinMode (6,INPUT); // Left Detect Pin Number - Normally Open switch to ground on // Hard Pin #31
+  pinMode (7,INPUT); // Right Detect Pin Number - Normally Open switch to ground on // Hard Pin #26
+  pinMode (8,INPUT); // Rear Detect Pin Number - Normally Open switch to ground on // Hard Pin #24
   pullUpDnControl (5,PUD_DOWN);
   pullUpDnControl (6,PUD_DOWN);
   pullUpDnControl (7,PUD_DOWN);
   pullUpDnControl (8,PUD_DOWN);
-  softPwmCreate (4,15,25);
+  softPwmCreate (4,15,25); //Activate and set steering servo plugged into pin 16 to 0 
   while (safety == 0)
   {
     controlupdate ();
