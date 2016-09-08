@@ -1,8 +1,5 @@
 //  This uses the Wiringpi software PWM to adjust the servo plugged into GPIO pin 16.
 
-// 9-1-16 Need to set up a plan to use the Arrows to steer and control the motor.  Plane to use keyread to feed data to the contolupdate.
-// 9-2-16 Need to test keyboard reader.  9/6 working on using aswz for controls.
-
 #include <iostream>
 #include <wiringPi.h>
 #include <softPwm.h> // I may replace with pigpio in the future.  The resolution of the signal is low.
@@ -24,7 +21,7 @@ using namespace std;
     int currentposition = 15;
     int kbnumber; 
     char kbchar;
-    
+
 // Read the keybord so that it can be used as a remote control up down for move left right to turn.  "z" to stop program.
 //  Assumes "a" = 97; "z" = 122; "w" = 119; "s" = 115.  Need to confirm this.
 int readkey (void)
@@ -83,12 +80,12 @@ int steering (int azimuth)
 int main (void)
 {
   wiringPiSetup ();
-  pinMode (0,OUTPUT); // Mower control
-  pinMode (1,OUTPUT); // Move control - Currently On - Off may want to use a Variable Drive of sorts for trimming
-  pinMode (5,INPUT); // Front Detect Pin Number -  Normally Open switch to ground on // Hard Pin #29 
-  pinMode (6,INPUT); // Left Detect Pin Number - Normally Open switch to ground on // Hard Pin #31
-  pinMode (7,INPUT); // Right Detect Pin Number - Normally Open switch to ground on // Hard Pin #26
-  pinMode (8,INPUT); // Rear Detect Pin Number - Normally Open switch to ground on // Hard Pin #24
+  pinMode (0,OUTPUT); // Mower control - GPIO Hard Pin #11
+  pinMode (1,OUTPUT); // Move control - GPIO Hard Pin #12 Currently On - Off may want to use a Variable Drive of sorts for trimming
+  pinMode (5,INPUT); // Front Detect Pin Number -  Normally Open switch to ground on Hard Pin #18 
+  pinMode (6,INPUT); // Left Detect Pin Number - Normally Open switch to ground on Hard Pin #22
+  pinMode (7,INPUT); // Right Detect Pin Number - Normally Open switch to ground on Hard Pin #26
+  pinMode (8,INPUT); // Rear Detect Pin Number - Normally Open switch to ground on Hard Pin #24
   pullUpDnControl (5,PUD_DOWN);
   pullUpDnControl (6,PUD_DOWN);
   pullUpDnControl (7,PUD_DOWN);
