@@ -4,7 +4,7 @@
 #include <wiringPi.h>
 #include <softPwm.h> // I may replace with pigpio in the future.  The resolution of the signal is low.
 #include <pigpio.h>
-#include <time.h> // For time controls.
+#include <chrono> // For time controls.
 
 using namespace std;
 
@@ -21,9 +21,12 @@ using namespace std;
     int currentposition = 15;
     int kbnumber; 
     char kbchar;
+    time_point starttime;
+    time_point endtime;
 
-// Read the keybord so that it can be used as a remote control up down for move left right to turn.  "z" to stop program.
-//  Assumes "a" = 97; "z" = 122; "w" = 119; "s" = 115.  Need to confirm this.
+/* Read the keybord so that it can be used as a remote control up down for move left right to turn.  "z" to stop program
+ Assumes "a" = 97; "z" = 122; "w" = 119; "s" = 115.  Need to confirm this */
+
 int readkey (void)
 {
 	cin >> kbchar;
@@ -94,6 +97,8 @@ int main (void)
   while (safety == 0)
   {
     controlupdate ();
+    starttime = high_resolution_clock::now();
+    endtime = now();
     currentposition = steering (direction);
     softPwmWrite (4, currentposition);
     cout << "Direction : " << direction << endl;
@@ -105,6 +110,7 @@ int main (void)
     cout << "Left Obstruction Detect : " << left_detect << endl;
     cout << "Right Obstruction Detect : " << right_detect << endl;
     cout << "Rear Obstruction Detect : " << rear_detect << endl;
+    cout << starttime;
   }
   // Needs a reset plan if the safety goes off.
   return 0 ;
