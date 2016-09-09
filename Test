@@ -21,8 +21,8 @@ using namespace std;
     int currentposition = 15;
     int kbnumber; 
     char kbchar;
-    time_point starttime;
-    time_point endtime;
+    time_t starttime;
+    time_t endtime;
 
 /* Read the keybord so that it can be used as a remote control up down for move left right to turn.  "z" to stop program
  Assumes "a" = 97; "z" = 122; "w" = 119; "s" = 115.  Need to confirm this */
@@ -97,8 +97,7 @@ int main (void)
   while (safety == 0)
   {
     controlupdate ();
-    starttime = high_resolution_clock::now();
-    endtime = now();
+    starttime = chrono::steady_clock::period::num;
     currentposition = steering (direction);
     softPwmWrite (4, currentposition);
     cout << "Direction : " << direction << endl;
@@ -110,7 +109,8 @@ int main (void)
     cout << "Left Obstruction Detect : " << left_detect << endl;
     cout << "Right Obstruction Detect : " << right_detect << endl;
     cout << "Rear Obstruction Detect : " << rear_detect << endl;
-    cout << starttime;
+    endtime = chrono::steady_clock::period::num;
+    cout << starttime << endtime;
   }
   // Needs a reset plan if the safety goes off.
   return 0 ;
