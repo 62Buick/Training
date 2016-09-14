@@ -1,4 +1,4 @@
-// Revised 091316
+// Revised 091416.001
 //  This uses the Wiringpi software PWM to adjust the servo plugged into GPIO pin 16.
 
 #include <iostream>
@@ -23,28 +23,21 @@ using namespace std::chrono;
     int currentposition = 15;
     int kbnumber; 
     char kbchar;
+    steady_clock::time_point t1;
+    steady_clock::time_point t2;
+
 
 /* Read the keybord so that it can be used as a remote control up down for move left right to turn.  "z" to stop program
  Assumes "a" = 97; "z" = 122; "w" = 119; "s" = 115.  Need to confirm this */
 
 int testtime ()
 {
-
-  steady_clock::time_point t1 = steady_clock::now();
-
-  cout << "printing out 1000 stars...\n";
-  for (int i=0; i<1000; ++i) cout << "*";
-  cout << endl;
-
-  steady_clock::time_point t2 = steady_clock::now();
-
+/*  steady_clock::time_point t1 = steady_clock::now();
+  steady_clock::time_point t2 = steady_clock::now();*/
   duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
-
   cout << "It took me " << time_span.count() << " seconds.";
-
   return 0;
 }
-
 
 int readkey (void)
 {
@@ -56,6 +49,7 @@ int readkey (void)
 // Reads Sensors and Updates Controls
 int controlupdate (void)
 {
+        t1 = steady_clock::now();
         mower_on = 1;
         move_on = 1;
         readkey (); // Make these 2 lines a note to switch to only detector control.
@@ -83,6 +77,7 @@ int controlupdate (void)
              else {digitalWrite (0, LOW);}
         if(move_on == 1) {digitalWrite (1, HIGH);}
              else {digitalWrite (1, LOW);}
+        t2 = steady_clock::now();
 	return 0;
 }
 
