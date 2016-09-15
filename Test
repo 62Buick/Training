@@ -1,4 +1,4 @@
-// Revised 091416.001
+// Revised 091417.001
 //  This uses the Wiringpi software PWM to adjust the servo plugged into GPIO pin 16.
 
 #include <iostream>
@@ -35,6 +35,7 @@ int testtime ()
 /*  steady_clock::time_point t1 = steady_clock::now();
   steady_clock::time_point t2 = steady_clock::now();*/
   duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
+  system ("raspistill -t 1 c-o image.jpg");// Testing Camera 
   cout << "It took me " << time_span.count() << " seconds.";
   return 0;
 }
