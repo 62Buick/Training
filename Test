@@ -35,7 +35,7 @@ int testtime ()
 /*  steady_clock::time_point t1 = steady_clock::now();
   steady_clock::time_point t2 = steady_clock::now();*/
   duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
-  system ("./Picture.sh");// Testing Camera and email to my gmail account.  It is using a new drwpi2016@gmail.com account 
+  system ("bash ./Picture.sh");// Testing Camera and email to my gmail account.  It is using a new drwpi2016@gmail.com account 
   cout << "It took me " << time_span.count() << " seconds.";
   return 0;
 }
