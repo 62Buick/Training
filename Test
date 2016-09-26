@@ -1,4 +1,4 @@
-// Revised 091516.001
+// Revised 092616.001
 //  This uses the Wiringpi software PWM to adjust the servo plugged into GPIO pin 16.
 
 #include <iostream>
@@ -28,17 +28,7 @@ using namespace std::chrono;
 
 
 /* Read the keybord so that it can be used as a remote control up down for move left right to turn.  "z" to stop program
- Assumes "a" = 97; "z" = 122; "w" = 119; "s" = 115.  Need to confirm this */
-
-int testtime ()
-{
-/*  steady_clock::time_point t1 = steady_clock::now();
-  steady_clock::time_point t2 = steady_clock::now();*/
-  duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
-  system ("bash ./Picture.sh");// Testing Camera and email to my gmail account.  It is using a new drwpi2016@gmail.com account 
-  cout << "It took me " << time_span.count() << " seconds.";
-  return 0;
-}
+ Assumes "a" = 97; "z" = 122; "w" = 119; "s" = 115.*/
 
 int readkey (void)
 {
@@ -50,7 +40,6 @@ int readkey (void)
 // Reads Sensors and Updates Controls
 int controlupdate (void)
 {
-        t1 = steady_clock::now();
         mower_on = 1;
         move_on = 1;
         readkey (); // Make these 2 lines a note to switch to only detector control.
@@ -65,7 +54,6 @@ int controlupdate (void)
 	cin >> left_detect;
 	cout << "Hit Right : (0 or 1) ";
 	cin >> right_detect;
-// Temp test set rear to 1 to exit, it will set safety to 1 which will end the while loop in main.  Need to set a time to exit loop.
 	cout << "Hit Rear : (0 or 1) ";
 	cin >> rear_detect;
         if(left_detect == 1||kbnumber == 115) {mower_on = 0; direction = (direction + 9);}
@@ -78,7 +66,6 @@ int controlupdate (void)
              else {digitalWrite (0, LOW);}
         if(move_on == 1) {digitalWrite (1, HIGH);}
              else {digitalWrite (1, LOW);}
-        t2 = steady_clock::now();
 	return 0;
 }
 
@@ -109,11 +96,15 @@ int main (void)
   pullUpDnControl (7,PUD_DOWN);
   pullUpDnControl (8,PUD_DOWN);
   softPwmCreate (4,15,25); //Activate and set steering servo plugged into pin 16 to 0 
-  while (safety == 0)
+  //t1 = steady_clock::now();
+  //t2 = steady_clock::now();
+  duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
+  while (time_span.count() < 20000)
   {
     controlupdate ();
     currentposition = steering (direction);
-    testtime ();
+    system ("bash ./Picture.sh"); 
+    cout << "I have been running for " << time_span.count() << " seconds.";
     softPwmWrite (4, currentposition);
     cout << "Direction : " << direction << endl;
     cout << "Servo Position : " << currentposition << endl;
@@ -124,6 +115,9 @@ int main (void)
     cout << "Left Obstruction Detect : " << left_detect << endl;
     cout << "Right Obstruction Detect : " << right_detect << endl;
     cout << "Rear Obstruction Detect : " << rear_detect << endl;
+    t2 = steady_clock::now();
+    time_span = duration_cast<duration<double>>(t2 - t1);
+    cout << time_span.count()<< endl;
   }
   // Needs a reset plan if the safety goes off.
   return 0 ;
