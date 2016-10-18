@@ -1,4 +1,4 @@
-// Revised 101716.001
+// Revised 101816.001
 //  This uses the Wiringpi software PWM to adjust the servo plugged into GPIO pin 16.
 
 #include <iostream>
@@ -25,9 +25,11 @@ using namespace std::chrono;
     int currentposition = 15;
     int kbnumber; 
     char kbchar;
-    steady_clock::time_point t1;
-    steady_clock::time_point t2;
-
+    steady_clock::time_point time_boot;
+    steady_clock::time_point time_current;
+    steady_clock::time_point time_last_locate;
+    steady_clock::time_point time_last_picture;
+    steady_clock::time_point time_last_mowing;
 
 /* Read the keybord so that it can be used as a remote control up down for move left right to turn.  "z" to stop program
  Assumes "a" = 97; "z" = 122; "w" = 119; "s" = 115.*/
@@ -44,20 +46,20 @@ int controlupdate (void)
 {
         mower_on = 1;
         move_on = 1;
-        readkey (); // Make these 2 lines a note to switch to only detector control.
-        cout << "Results of Keyboard read " << kbchar << " = ASCII Number" << kbnumber << endl;
-        // front_detect = digitalRead(5);
-        // left_detect = digitalRead(6);
-        // right_detect = digitalRead(7);  
-        // rear_detect = digitalRead(8);  
-	cout << "Hit Front : (0 or 1) ";
-	cin >> front_detect;
-	cout << "Hit Left : (0 or 1) ";
-	cin >> left_detect;
-	cout << "Hit Right : (0 or 1) ";
-	cin >> right_detect;
-	cout << "Hit Rear : (0 or 1) ";
-	cin >> rear_detect;
+        // readkey (); // Make these 2 lines a note to switch to only detector control.
+        // cout << "Results of Keyboard read " << kbchar << " = ASCII Number" << kbnumber << endl;
+        front_detect = digitalRead(5);
+        left_detect = digitalRead(6);
+        right_detect = digitalRead(7);  
+        rear_detect = digitalRead(8);  
+	//cout << "Hit Front : (0 or 1) ";
+	//cin >> front_detect;
+	//cout << "Hit Left : (0 or 1) ";
+	//cin >> left_detect;
+	//cout << "Hit Right : (0 or 1) ";
+	//cin >> right_detect;
+	//cout << "Hit Rear : (0 or 1) ";
+	//cin >> rear_detect;
         if(left_detect == 1||kbnumber == 115) {mower_on = 0; direction = (direction + 9);}
         if(right_detect == 1||kbnumber == 97) {mower_on = 0; direction = (direction - 9);}
         if(direction > 360) {direction = (direction - 360);}
@@ -87,6 +89,7 @@ int steering (int azimuth)
 
 int main (void)
 {
+  time_boot = steady_clock::now();
   wiringPiSetup ();
   pinMode (0,OUTPUT); // Mower control - GPIO Hard Pin #11
   pinMode (1,OUTPUT); // Move control - GPIO Hard Pin #12 Currently On - Off may want to use a Variable Drive of sorts for trimming
@@ -99,9 +102,8 @@ int main (void)
   pullUpDnControl (7,PUD_DOWN);
   pullUpDnControl (8,PUD_DOWN);
   softPwmCreate (4,15,25); //Activate and set steering servo plugged into pin 16 to 0 
-  t1 = steady_clock::now();
-  t2 = steady_clock::now();
-  duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
+  time_current = steady_clock::now();
+  duration<double> time_span = duration_cast<duration<double>>(time_current - time_boot);
   while (time_span.count() < 20)
   {
     controlupdate ();
@@ -118,84 +120,8 @@ int main (void)
     cout << "Left Obstruction Detect : " << left_detect << endl;
     cout << "Right Obstruction Detect : " << right_detect << endl;
     cout << "Rear Obstruction Detect : " << rear_detect << endl;
-    t2 = steady_clock::now();
-    time_span = duration_cast<duration<double>>(t2 - t1);
-    cout << time_span.count()<< endl;
-  }
-  // Needs a reset plan if the safety goes off.
-  return 0 ;
-}
-
-        // rear_detect = digitalRead(8);  
-	cout << "Hit Front : (0 or 1) ";
-	cin >> front_detect;
-	cout << "Hit Left : (0 or 1) ";
-	cin >> left_detect;
-	cout << "Hit Right : (0 or 1) ";
-	cin >> right_detect;
-	cout << "Hit Rear : (0 or 1) ";
-	cin >> rear_detect;
-        if(left_detect == 1||kbnumber == 115) {mower_on = 0; direction = (direction + 9);}
-        if(right_detect == 1||kbnumber == 97) {mower_on = 0; direction = (direction - 9);}
-        if(direction > 360) {direction = (direction - 360);}
-        if(direction < 0) {direction = (360 + direction);}
-        if(front_detect == 1) {mower_on = 0;move_on = 0;} 
-        if(rear_detect == 1) {mower_on = 0;safety = 1;}
-        if(mower_on == 1) {digitalWrite (0, HIGH);}
-             else {digitalWrite (0, LOW);}
-        if(move_on == 1) {digitalWrite (1, HIGH);}
-             else {digitalWrite (1, LOW);}
-	return 0;
-}
-
-// Sets Steering Servo with the variable direction as the input.
-// Needs to be upgraded to allow for more granular control.
-
-int steering (int azimuth)
-{
-    int c;
-    cout << "Steering Module " << azimuth << endl;
-    if (azimuth >= 0 && azimuth <= 90){c = (90-azimuth)/10+6;}
-    if (azimuth >=270 && azimuth <= 359) {c = (360-azimuth)/10+15;}
-    if (azimuth > 90 && azimuth < 270) {c = 15;direction = 0;}
-    return c;
-}
-
-int main (void)
-{
-  wiringPiSetup ();
-  pinMode (0,OUTPUT); // Mower control - GPIO Hard Pin #11
-  pinMode (1,OUTPUT); // Move control - GPIO Hard Pin #12 Currently On - Off may want to use a Variable Drive of sorts for trimming
-  pinMode (5,INPUT); // Front Detect Pin Number -  Normally Open switch to ground on Hard Pin #18 
-  pinMode (6,INPUT); // Left Detect Pin Number - Normally Open switch to ground on Hard Pin #22
-  pinMode (7,INPUT); // Right Detect Pin Number - Normally Open switch to ground on Hard Pin #26
-  pinMode (8,INPUT); // Rear Detect Pin Number - Normally Open switch to ground on Hard Pin #24
-  pullUpDnControl (5,PUD_DOWN);
-  pullUpDnControl (6,PUD_DOWN);
-  pullUpDnControl (7,PUD_DOWN);
-  pullUpDnControl (8,PUD_DOWN);
-  softPwmCreate (4,15,25); //Activate and set steering servo plugged into pin 16 to 0 
-  //t1 = steady_clock::now();
-  //t2 = steady_clock::now();
-  duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
-  while (time_span.count() < 20000)
-  {
-    controlupdate ();
-    currentposition = steering (direction);
-    system ("bash ./Picture.sh"); 
-    cout << "I have been running for " << time_span.count() << " seconds.";
-    softPwmWrite (4, currentposition);
-    cout << "Direction : " << direction << endl;
-    cout << "Servo Position : " << currentposition << endl;
-    cout << "Mower Power : " << mower_on << endl;
-    cout << "Move Power : " << move_on << endl;
-    cout << "Safety : " << safety << endl;
-    cout << "Front Obstruction Detect : " <<  front_detect << endl; 
-    cout << "Left Obstruction Detect : " << left_detect << endl;
-    cout << "Right Obstruction Detect : " << right_detect << endl;
-    cout << "Rear Obstruction Detect : " << rear_detect << endl;
-    t2 = steady_clock::now();
-    time_span = duration_cast<duration<double>>(t2 - t1);
+    time_current = steady_clock::now();
+    time_span = duration_cast<duration<double>>(time_current - time_boot);
     cout << time_span.count()<< endl;
   }
   // Needs a reset plan if the safety goes off.
