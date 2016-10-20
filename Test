@@ -1,4 +1,4 @@
-// Revised 101816.001
+// Revised 102016.001
 //  This uses the Wiringpi software PWM to adjust the servo plugged into GPIO pin 16.
 
 #include <iostream>
@@ -46,20 +46,20 @@ int controlupdate (void)
 {
         mower_on = 1;
         move_on = 1;
-        // readkey (); // Make these 2 lines a note to switch to only detector control.
-        // cout << "Results of Keyboard read " << kbchar << " = ASCII Number" << kbnumber << endl;
-        front_detect = digitalRead(5);
-        left_detect = digitalRead(6);
-        right_detect = digitalRead(7);  
-        rear_detect = digitalRead(8);  
-	//cout << "Hit Front : (0 or 1) ";
-	//cin >> front_detect;
-	//cout << "Hit Left : (0 or 1) ";
-	//cin >> left_detect;
-	//cout << "Hit Right : (0 or 1) ";
-	//cin >> right_detect;
-	//cout << "Hit Rear : (0 or 1) ";
-	//cin >> rear_detect;
+        readkey (); // Make these 2 lines a note to switch to only detector control.
+        cout << "Results of Keyboard read " << kbchar << " = ASCII Number" << kbnumber << endl;
+        // front_detect = digitalRead(5);
+        // left_detect = digitalRead(6);
+        // right_detect = digitalRead(7);  
+        // rear_detect = digitalRead(8);  
+	// cout << "Hit Front : (0 or 1) ";
+	// cin >> front_detect;
+	// cout << "Hit Left : (0 or 1) ";
+	// cin >> left_detect;
+	// cout << "Hit Right : (0 or 1) ";
+	// cin >> right_detect;
+	// cout << "Hit Rear : (0 or 1) ";
+	// cin >> rear_detect;
         if(left_detect == 1||kbnumber == 115) {mower_on = 0; direction = (direction + 9);}
         if(right_detect == 1||kbnumber == 97) {mower_on = 0; direction = (direction - 9);}
         if(direction > 360) {direction = (direction - 360);}
@@ -104,7 +104,7 @@ int main (void)
   softPwmCreate (4,15,25); //Activate and set steering servo plugged into pin 16 to 0 
   time_current = steady_clock::now();
   duration<double> time_span = duration_cast<duration<double>>(time_current - time_boot);
-  while (time_span.count() < 20)
+  while (time_span.count() < 60)
   {
     controlupdate ();
     currentposition = steering (direction);
