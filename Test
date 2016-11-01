@@ -1,4 +1,4 @@
-// Revised 102016.001
+// Revised 110116.001
 //  This uses the Wiringpi software PWM to adjust the servo plugged into GPIO pin 16.
 
 #include <iostream>
