@@ -47,8 +47,10 @@ int controlupdate (void)
         mower_on = 1;
         move_on = 1;
         readkey (); // Make these 2 lines a note to switch to only detector control.
-        cout << "Results of Keyboard read " << kbchar << " = ASCII Number" << kbnumber << endl;
-        // front_detect = digitalRead(5);
+        cout << "Results of Keyboard read " << kbchar << " = ASCII Number " << kbnumber << endl;
+        cout << "Set Jumper for Pin #18 " << endl;  
+        cin >> kbchar;
+        front_detect = digitalRead(5);
         // left_detect = digitalRead(6);
         // right_detect = digitalRead(7);  
         // rear_detect = digitalRead(8);  
