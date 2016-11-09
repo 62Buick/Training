@@ -1,9 +1,11 @@
-// Revised 110116.001
-//  This uses the Wiringpi software PWM to adjust the servo plugged into GPIO pin 16.
+/* Revised 110916.001
+This uses the pigpio software PWM to adjust the servo plugged into GPIO23.
+To compile use:
+g++ -Wall -lpthread -o mowerpigpio mowerpigpio.cpp -lpigpio -lrt -std=c++14
+
+*/
 
 #include <iostream>
-#include <wiringPi.h>
-#include <softPwm.h> // I may replace with pigpio in the future.  The resolution of the signal is low.
 #include <pigpio.h>
 #include <ctime>
 #include <ratio>
@@ -13,17 +15,18 @@ using namespace std;
 using namespace std::chrono;
 
 // Initialize Control and set to nominal position.
-    int mower_on = 0;
-    int move_on = 0;
-    int direction = 0;// Uses azmuith relative to the orientation of the mower 0 is straight ahead, 90 is right, 270 is left Range is 0 - 360. 
+    int mower_on = 0;  //GPIO17
+    int move_on = 0;  //GPIO18
+    int forward_reverse = 1; //GPIO27
+    int direction = 0;// GPIO23 Uses azmuith relative to the orientation of the mower 0 is straight ahead, 90 is right, 270 is left Range is 0 - 360. 
     int safety = 0;
-    int left_detect = 0;
-    int right_detect = 0;
-    int front_detect = 0;
-    int rear_detect = 0;
+    int left_detect = 0;  //GPIO16
+    int right_detect = 0;  //GPIO20
+    int front_detect = 0; //GPIO12
+    int rear_detect = 0;  //GPIO21
     int azimuth;
-    int currentposition = 15;
-    int kbnumber; 
+    int currentposition = 1500;
+    int kbnumber;
     char kbchar;
     steady_clock::time_point time_boot;
     steady_clock::time_point time_current;
@@ -46,32 +49,28 @@ int controlupdate (void)
 {
         mower_on = 1;
         move_on = 1;
-        readkey (); // Make these 2 lines a note to switch to only detector control.
-        cout << "Results of Keyboard read " << kbchar << " = ASCII Number " << kbnumber << endl;
-        cout << "Set Jumper for Pin #18 " << endl;  
+	forward_reverse = 1;
+        // readkey (); // Make these 2 lines a note to switch to only detector control.
+        // cout << "Results of Keyboard read " << kbchar << " = ASCII Number " << kbnumber << endl;
+        cout << "Set Jumper for GPIO12, 16, 20 , or 21 " << endl;  
         cin >> kbchar;
-        front_detect = digitalRead(5);
-        // left_detect = digitalRead(6);
-        // right_detect = digitalRead(7);  
-        // rear_detect = digitalRead(8);  
-	// cout << "Hit Front : (0 or 1) ";
-	// cin >> front_detect;
-	// cout << "Hit Left : (0 or 1) ";
-	// cin >> left_detect;
-	// cout << "Hit Right : (0 or 1) ";
-	// cin >> right_detect;
-	// cout << "Hit Rear : (0 or 1) ";
-	// cin >> rear_detect;
-        if(left_detect == 1||kbnumber == 115) {mower_on = 0; direction = (direction + 9);}
-        if(right_detect == 1||kbnumber == 97) {mower_on = 0; direction = (direction - 9);}
+        left_detect = gpioRead(16);
+        right_detect = gpioRead(20);  
+        rear_detect = gpioRead(21);  
+        front_detect = gpioRead(12);
+	cout << "Front Left Right Rear" << endl;
+	cout << front_detect << "     " << left_detect << "    " << right_detect << "     " << rear_detect << endl;
+        cin >> kbchar;
+        if(left_detect == 1||kbnumber == 115) {mower_on = 0; direction = (direction + 1);}
+        if(right_detect == 1||kbnumber == 97) {mower_on = 0; direction = (direction - 1);}
         if(direction > 360) {direction = (direction - 360);}
         if(direction < 0) {direction = (360 + direction);}
         if(front_detect == 1) {mower_on = 0;move_on = 0;} 
         if(rear_detect == 1) {mower_on = 0;safety = 1;}
-        if(mower_on == 1) {digitalWrite (0, HIGH);}
-             else {digitalWrite (0, LOW);}
-        if(move_on == 1) {digitalWrite (1, HIGH);}
-             else {digitalWrite (1, LOW);}
+        if(mower_on == 1) {gpioWrite (17, 1);}
+             else {gpioWrite (17, 0);}
+        if(move_on == 1) {gpioWrite (18, 1);}
+             else {gpioWrite (18, 0);}
 	return 0;
 }
 
@@ -82,37 +81,38 @@ int steering (int azimuth)
 {
     int c;
     cout << "Steering Module " << azimuth << endl;
-    if (azimuth == 360) {c = 15;}
-    if (azimuth >= 0 && azimuth <= 90){c = (90-azimuth)/10+6;}
-    if (azimuth >=270 && azimuth <= 359) {c = (360-azimuth)/10+15;}
-    if (azimuth > 90 && azimuth < 270) {c = 15;direction = 0;}
+    if (azimuth == 360) {c = 1500;}
+    if (azimuth >= 0 && azimuth <= 130){c = 1500-azimuth*11;}
+    if (azimuth >=230 && azimuth <= 359) {c = (360-azimuth)*11+1500;}
+    if (azimuth > 130 && azimuth < 230) {c = 1500;direction = 0;}
     return c;
 }
 
 int main (void)
 {
   time_boot = steady_clock::now();
-  wiringPiSetup ();
-  pinMode (0,OUTPUT); // Mower control - GPIO Hard Pin #11
-  pinMode (1,OUTPUT); // Move control - GPIO Hard Pin #12 Currently On - Off may want to use a Variable Drive of sorts for trimming
-  pinMode (5,INPUT); // Front Detect Pin Number -  Normally Open switch to ground on Hard Pin #18 
-  pinMode (6,INPUT); // Left Detect Pin Number - Normally Open switch to ground on Hard Pin #22
-  pinMode (7,INPUT); // Right Detect Pin Number - Normally Open switch to ground on Hard Pin #26
-  pinMode (8,INPUT); // Rear Detect Pin Number - Normally Open switch to ground on Hard Pin #24
-  pullUpDnControl (5,PUD_DOWN);
-  pullUpDnControl (6,PUD_DOWN);
-  pullUpDnControl (7,PUD_DOWN);
-  pullUpDnControl (8,PUD_DOWN);
-  softPwmCreate (4,15,25); //Activate and set steering servo plugged into pin 16 to 0 
+  gpioInitialise ();
+  gpioSetMode (17,PI_OUTPUT); // Mower control - GPIO17
+  gpioSetMode (18,PI_OUTPUT); // Drive Motor Power control - GPIO18 ** Currently On - Off may want to use a Variable Drive of sorts for trimming
+  gpioSetMode (27,PI_OUTPUT); // Drive Motor Forward/Reverse - GPIO27  
+  gpioSetMode (12,PI_INPUT); // Front Detect Pin Number -  Normally Open switch to 3V on GPIO12 
+  gpioSetMode (16,PI_INPUT); // Left Detect Pin Number - Normally Open switch to 3V on GPIO16
+  gpioSetMode (20,PI_INPUT); // Right Detect Pin Number - Normally Open switch to 3V on GPIO20
+  gpioSetMode (21,PI_INPUT); // Rear Detect Pin Number - Normally Open switch to 3V on GPIO21
+  gpioSetPullUpDown (12,PI_PUD_DOWN);
+  gpioSetPullUpDown (16,PI_PUD_DOWN);
+  gpioSetPullUpDown (20,PI_PUD_DOWN);
+  gpioSetPullUpDown (21,PI_PUD_DOWN);
+  gpioPWM (23,128); //Activate and set steering servo plugged into pin 23 to 0
   time_current = steady_clock::now();
   duration<double> time_span = duration_cast<duration<double>>(time_current - time_boot);
   while (time_span.count() < 60)
   {
     controlupdate ();
     currentposition = steering (direction);
-    // system ("bash ./Picture.sh"); Sends a picture
+    // system ("bash ./Picture.sh"); Saves a picture
     cout << "I have been running for " << time_span.count() << " seconds." << endl;
-    softPwmWrite (4, currentposition);
+    gpioServo (23, currentposition);
     cout << "Direction : " << direction << endl;
     cout << "Servo Position : " << currentposition << endl;
     cout << "Mower Power : " << mower_on << endl;
@@ -124,8 +124,8 @@ int main (void)
     cout << "Rear Obstruction Detect : " << rear_detect << endl;
     time_current = steady_clock::now();
     time_span = duration_cast<duration<double>>(time_current - time_boot);
-    cout << time_span.count()<< endl;
   }
   // Needs a reset plan if the safety goes off.
+  void gpioTerminate (void);
   return 0 ;
 }
