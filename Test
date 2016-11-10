@@ -53,16 +53,17 @@ int controlupdate (void)
         // readkey (); // Make these 2 lines a note to switch to only detector control.
         // cout << "Results of Keyboard read " << kbchar << " = ASCII Number " << kbnumber << endl;
         cout << "Set Jumper for GPIO12, 16, 20 , or 21 " << endl;  
-        cin >> kbchar;
+        //  *** cin >> kbchar;
         left_detect = gpioRead(16);
         right_detect = gpioRead(20);  
         rear_detect = gpioRead(21);  
         front_detect = gpioRead(12);
 	cout << "Front Left Right Rear" << endl;
 	cout << front_detect << "     " << left_detect << "    " << right_detect << "     " << rear_detect << endl;
-        cin >> kbchar;
-        if(left_detect == 1||kbnumber == 115) {mower_on = 0; direction = (direction + 1);}
-        if(right_detect == 1||kbnumber == 97) {mower_on = 0; direction = (direction - 1);}
+        //  *** cin >> kbchar;
+        if(left_detect == 1||kbnumber == 115) {mower_on = 0; direction = (direction + 10);}
+        if(right_detect == 1||kbnumber == 97) {mower_on = 0; direction = (direction - 10);}
+        if(left_detect == 0 && right_detect == 0) {direction = 0;}
         if(direction > 360) {direction = (direction - 360);}
         if(direction < 0) {direction = (360 + direction);}
         if(front_detect == 1) {mower_on = 0;move_on = 0;} 
@@ -82,9 +83,9 @@ int steering (int azimuth)
     int c;
     cout << "Steering Module " << azimuth << endl;
     if (azimuth == 360) {c = 1500;}
-    if (azimuth >= 0 && azimuth <= 130){c = 1500-azimuth*11;}
-    if (azimuth >=230 && azimuth <= 359) {c = (360-azimuth)*11+1500;}
-    if (azimuth > 130 && azimuth < 230) {c = 1500;direction = 0;}
+    if (azimuth >= 0 && azimuth <= 90){c = 1500-azimuth*11;}
+    if (azimuth >=270 && azimuth <= 359) {c = (360-azimuth)*11+1500;}
+    if (azimuth > 90 && azimuth < 270) {c = 1500;direction = 0;}
     return c;
 }
 
@@ -104,6 +105,7 @@ int main (void)
   gpioSetPullUpDown (20,PI_PUD_DOWN);
   gpioSetPullUpDown (21,PI_PUD_DOWN);
   gpioPWM (23,128); //Activate and set steering servo plugged into pin 23 to 0
+  gpioServo (23, 1500); 
   time_current = steady_clock::now();
   duration<double> time_span = duration_cast<duration<double>>(time_current - time_boot);
   while (time_span.count() < 60)
@@ -122,6 +124,7 @@ int main (void)
     cout << "Left Obstruction Detect : " << left_detect << endl;
     cout << "Right Obstruction Detect : " << right_detect << endl;
     cout << "Rear Obstruction Detect : " << rear_detect << endl;
+    gpioSleep(PI_TIME_RELATIVE, 1, 500000); // sleep for 1.5 seconds
     time_current = steady_clock::now();
     time_span = duration_cast<duration<double>>(time_current - time_boot);
   }
