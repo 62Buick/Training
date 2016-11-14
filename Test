@@ -1,7 +1,27 @@
-/* Revised 110916.001
-This uses the pigpio software PWM to adjust the servo plugged into GPIO23.
+/* Revised 111416.001
 To compile use:
 g++ -Wall -lpthread -o mowerpigpio mowerpigpio.cpp -lpigpio -lrt -std=c++14
+
+This program is designed to contol a lawn mower.  The goal is to mow the yard with no user feedback.
+
+The current status is that it will read 4 sensors on the mower to monitor contact with objects and stop or turn away from them.
+The detail of how the switches are wired are show in the initialization section.
+
+The pi will also take a pictue and save it or email it to a specified address.  I plan to eventually use the save photos to look
+for obstructions and identify the mowers location and orientation.  Location will be x,y,z and orientation will track a heading.
+
+I think that the obstructions will be recorded by location, color, and identification (ie rock, house, fence...).  I would like the pi to ask for the identification.
+
+Several actions will be time controlled.
+	Check location every 1 minute while mowing.  (record approximate location based on heading and speed)
+	Take a photo every 30 minutes.
+        Take and email a photo every 2 hours. 
+        Mow every 7 days.
+
+Future adds
+Battery monitoring and self recharging.
+Georeference with sun, moon, stars...
+Moving object identification and avoidance.
 
 */
 
@@ -66,12 +86,14 @@ int controlupdate (void)
         if(left_detect == 0 && right_detect == 0) {direction = 0;}
         if(direction > 360) {direction = (direction - 360);}
         if(direction < 0) {direction = (360 + direction);}
-        if(front_detect == 1) {mower_on = 0;move_on = 0;} 
+        if(front_detect == 1) {mower_on = 0;forward_reverse = 0;direction = (direction + 10);} 
         if(rear_detect == 1) {mower_on = 0;safety = 1;}
         if(mower_on == 1) {gpioWrite (17, 1);}
              else {gpioWrite (17, 0);}
         if(move_on == 1) {gpioWrite (18, 1);}
              else {gpioWrite (18, 0);}
+        if(forward_reverse == 1) {gpioWrite (27, 1);}
+             else {gpioWrite (27, 0);}
 	return 0;
 }
 
@@ -108,6 +130,9 @@ int main (void)
   gpioServo (23, 1500); 
   time_current = steady_clock::now();
   duration<double> time_span = duration_cast<duration<double>>(time_current - time_boot);
+  duration<double> time_picture = duration_cast<duration<double>>(time_current - time_last_picture);
+  duration<double> time_mow = duration_cast<duration<double>>(time_current - time_last_mowing);
+  duration<double> time_locate = duration_cast<duration<double>>(time_current - time_last_locate);
   while (time_span.count() < 60)
   {
     controlupdate ();
@@ -127,6 +152,9 @@ int main (void)
     gpioSleep(PI_TIME_RELATIVE, 1, 500000); // sleep for 1.5 seconds
     time_current = steady_clock::now();
     time_span = duration_cast<duration<double>>(time_current - time_boot);
+    time_picture = duration_cast<duration<double>>(time_current - time_last_picture);
+    time_mow = duration_cast<duration<double>>(time_current - time_last_mowing);
+    time_locate = duration_cast<duration<double>>(time_current - time_last_locate);
   }
   // Needs a reset plan if the safety goes off.
   void gpioTerminate (void);
