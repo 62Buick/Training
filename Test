@@ -149,7 +149,7 @@ int main (void)
     cout << "Left Obstruction Detect : " << left_detect << endl;
     cout << "Right Obstruction Detect : " << right_detect << endl;
     cout << "Rear Obstruction Detect : " << rear_detect << endl;
-    gpioSleep(PI_TIME_RELATIVE, 1, 500000); // sleep for 1.5 seconds
+    gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
     time_current = steady_clock::now();
     time_span = duration_cast<duration<double>>(time_current - time_boot);
     time_picture = duration_cast<duration<double>>(time_current - time_last_picture);
