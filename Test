@@ -84,10 +84,10 @@ int controlupdate (void)
         if(left_detect == 1||kbnumber == 115) {mower_on = 0; direction = (direction + 10);}
         if(right_detect == 1||kbnumber == 97) {mower_on = 0; direction = (direction - 10);}
         if(left_detect == 0 && right_detect == 0) {direction = 0;}
+        if(front_detect == 1) {mower_on = 0;forward_reverse = 0;direction = (direction - 10);} 
+        if(rear_detect == 1) {mower_on = 0;safety = 1;}
         if(direction > 360) {direction = (direction - 360);}
         if(direction < 0) {direction = (360 + direction);}
-        if(front_detect == 1) {mower_on = 0;forward_reverse = 0;direction = (direction + 10);} 
-        if(rear_detect == 1) {mower_on = 0;safety = 1;}
         if(mower_on == 1) {gpioWrite (17, 1);}
              else {gpioWrite (17, 0);}
         if(move_on == 1) {gpioWrite (18, 1);}
@@ -105,8 +105,8 @@ int steering (int azimuth)
     int c;
     cout << "Steering Module " << azimuth << endl;
     if (azimuth == 360) {c = 1500;}
-    if (azimuth >= 0 && azimuth <= 90){c = 1500-azimuth*11;}
-    if (azimuth >=270 && azimuth <= 359) {c = (360-azimuth)*11+1500;}
+    if (azimuth >= 0 && azimuth <= 90){c = 1500+azimuth*11;}
+    if (azimuth >=270 && azimuth <= 359) {c = 1500 - (360-azimuth)*11;}
     if (azimuth > 90 && azimuth < 270) {c = 1500;direction = 0;}
     return c;
 }
