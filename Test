@@ -1,4 +1,4 @@
-/* Revised 111416.001
+/* Revised 012417.001
 To compile use:
 g++ -Wall -lpthread -o mowerpigpio mowerpigpio.cpp -lpigpio -lrt -std=c++14
 
@@ -157,6 +157,10 @@ int main (void)
     time_locate = duration_cast<duration<double>>(time_current - time_last_locate);
   }
   // Needs a reset plan if the safety goes off.
+  gpioWrite (17, 0); //Shut the mower off.
+  gpioWrite (18, 0); //Shut the move off.
+  gpioWrite (27, 1); //Set the drive to forward.
+  gpioServo (23, 1500); 
   void gpioTerminate (void);
   return 0 ;
 }
