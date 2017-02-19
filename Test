@@ -1,11 +1,11 @@
-/* Revised 012417.001
+/* Revised 021917.001
 To compile use:
 g++ -Wall -lpthread -o mowerpigpio mowerpigpio.cpp -lpigpio -lrt -std=c++14
 
 This program is designed to contol a lawn mower.  The goal is to mow the yard with no user feedback.
 
 The current status is that it will read 4 sensors on the mower to monitor contact with objects and stop or turn away from them.
-The detail of how the switches are wired are show in the initialization section.
+The detail of how the switches are wired are show in the initialization section.c
 
 The pi will also take a pictue and save it or email it to a specified address.  I plan to eventually use the save photos to look
 for obstructions and identify the mowers location and orientation.  Location will be x,y,z and orientation will track a heading.
@@ -22,6 +22,11 @@ Future adds
 Battery monitoring and self recharging.
 Georeference with sun, moon, stars...
 Moving object identification and avoidance.
+
+Error History
+
+If the files do not close correctly it may leave a pigpio.pid file open that will prevent the pigpio from initializing the next time it runs
+Fix it by issuing a "sudo killall pigpiod" command.
 
 */
 
