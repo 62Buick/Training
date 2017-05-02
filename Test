@@ -1,4 +1,4 @@
-/* Revised 010417.001
+/* Revised 050117.001
 To compile use:
 g++ -Wall -lpthread -o mowerpigpio mowerpigpio.cpp -lpigpio -lrt -std=c++14
 
@@ -69,6 +69,14 @@ int readkey (void)
 	return (0);
 }
 
+// Takes a picture and texts it to the number in the .sh file.
+
+int pic01 (void)
+{
+	system ("bash ./Picture_with_email.sh");
+	return (0);
+}
+
 // Reads Sensors and Updates Controls
 int controlupdate (void)
 {
@@ -77,7 +85,7 @@ int controlupdate (void)
 	forward_reverse = 1;
         // readkey (); // Make these 2 lines a note to switch to only detector control.
         // cout << "Results of Keyboard read " << kbchar << " = ASCII Number " << kbnumber << endl;
-        cout << "Set Jumper for GPIO12, 16, 20 , or 21 " << endl;  
+        // cout << "Set Jumper for GPIO12, 16, 20 , or 21 " << endl;  
         //  *** cin >> kbchar;
         left_detect = gpioRead(16);
         right_detect = gpioRead(20);  
@@ -90,7 +98,7 @@ int controlupdate (void)
         if(right_detect == 1||kbnumber == 97) {mower_on = 0; direction = (direction - 10);}
         if(left_detect == 0 && right_detect == 0) {direction = 0;}
         if(front_detect == 1) {mower_on = 0;forward_reverse = 0;direction = (direction - 10);} 
-        if(rear_detect == 1) {mower_on = 0;safety = 1;}
+        if(rear_detect == 1) {mower_on = 0;safety = 1;pic01 ();}
         if(direction > 360) {direction = (direction - 360);}
         if(direction < 0) {direction = (360 + direction);}
         if(mower_on == 1) {gpioWrite (17, 1);}
@@ -110,8 +118,9 @@ int steering (int azimuth)
     int c;
     cout << "Steering Module " << azimuth << endl;
     if (azimuth == 360) {c = 1500;}
-    if (azimuth >= 0 && azimuth <= 90){c = 1500+azimuth*11;}
-    if (azimuth >=270 && azimuth <= 359) {c = 1500 - (360-azimuth)*11;}
+//  Switch the + and - after 1500 on the next 2 lines if the servo is mounted above the drive.
+    if (azimuth >= 0 && azimuth <= 90){c = 1500-azimuth*11;}
+    if (azimuth >=270 && azimuth <= 359) {c = 1500 + (360-azimuth)*11;}
     if (azimuth > 90 && azimuth < 270) {c = 1500;direction = 0;}
     return c;
 }
@@ -138,7 +147,7 @@ int main (void)
   duration<double> time_picture = duration_cast<duration<double>>(time_current - time_last_picture);
   duration<double> time_mow = duration_cast<duration<double>>(time_current - time_last_mowing);
   duration<double> time_locate = duration_cast<duration<double>>(time_current - time_last_locate);
-  while (time_span.count() < 60)
+  while (time_span.count() < 10)
   {
     controlupdate ();
     currentposition = steering (direction);
@@ -165,7 +174,10 @@ int main (void)
   gpioWrite (17, 0); //Shut the mower off.
   gpioWrite (18, 0); //Shut the move off.
   gpioWrite (27, 1); //Set the drive to forward.
-  gpioServo (23, 1500); 
+  gpioServo (23, 1500);
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds 
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
   void gpioTerminate (void);
   return 0 ;
 }
