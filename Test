@@ -7,7 +7,7 @@ This program is designed to contol a lawn mower.  The goal is to mow the yard wi
 The current status is that it will read 4 sensors on the mower to monitor contact with objects and stop or turn away from them.
 The detail of how the switches are wired are show in the initialization section.c
 
-The pi will also take a pictue and save it or email it to a specified address.  I plan to eventually use the save photos to look
+The pi will also take a picture and save it or email it to a specified address.  I plan to eventually use the save photos to look
 for obstructions and identify the mowers location and orientation.  Location will be x,y,z and orientation will track a heading.
 
 I think that the obstructions will be recorded by location, color, and identification (ie rock, house, fence...).  I would like the pi to ask for the identification.
@@ -62,6 +62,59 @@ using namespace std::chrono;
 /* Read the keybord so that it can be used as a remote control up down for move left right to turn.  "z" to stop program
  Assumes "a" = 97; "z" = 122; "w" = 119; "s" = 115.*/
 
+int selftest (void)
+{
+  gpioServo (23, 1500);//Centers the steering
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
+  gpioWrite (27, 1); //Set the drive to forward.
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
+  gpioWrite (18, 1); //Turn move on
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
+  gpioWrite (18, 0); //Shut the move off.
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
+  gpioWrite (27, 0); //Set the drive to reverse.
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds  
+  gpioWrite (18, 1); //Turn move on
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
+  gpioWrite (18, 0); //Turn move off.
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
+  gpioServo (23, 1600);//Steers Right
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
+  gpioWrite (27, 1); //Set the drive to forward.
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
+  gpioWrite (18, 1); //Turn move on
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
+  gpioWrite (18, 0); //Shut the move off.
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
+  gpioWrite (27, 0); //Set the drive to reverse.
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds  
+  gpioWrite (18, 1); //Turn move on
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
+  gpioWrite (18, 0); //Turn move off.
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
+  gpioServo (23, 1400);//Steers Left
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
+  gpioWrite (27, 1); //Set the drive to forward.
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
+  gpioWrite (18, 1); //Turn move on
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
+  gpioWrite (18, 0); //Shut the move off.
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
+  gpioWrite (27, 0); //Set the drive to reverse.
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds  
+  gpioWrite (18, 1); //Turn move on
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
+  gpioWrite (18, 0); //Turn move off.
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
+  gpioWrite (17, 1); //Turn the mower on.
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
+  gpioWrite (17, 0); //Turn the mower off.
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
+  gpioServo (23, 1500);//Centers the steering
+  gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
+  pic01 ();
+}
+
 int readkey (void)
 {
 	cin >> kbchar;
@@ -111,7 +164,7 @@ int controlupdate (void)
 }
 
 // Sets Steering Servo with the variable direction as the input.
-// Needs to be upgraded to allow for more granular control.
+// Steering limits of the mechanics need to be expanded. Fixes needed.
 
 int steering (int azimuth)
 {
@@ -119,9 +172,9 @@ int steering (int azimuth)
     cout << "Steering Module " << azimuth << endl;
     if (azimuth == 360) {c = 1500;}
 //  Switch the + and - after 1500 on the next 2 lines if the servo is mounted above the drive.
-    if (azimuth >= 0 && azimuth <= 90){c = 1500-azimuth*11;}
-    if (azimuth >=270 && azimuth <= 359) {c = 1500 + (360-azimuth)*11;}
-    if (azimuth > 90 && azimuth < 270) {c = 1500;direction = 0;}
+    if (azimuth >= 0 && azimuth <= 60){c = 1500-azimuth*11;}
+    if (azimuth >=300 && azimuth <= 359) {c = 1500 + (360-azimuth)*11;}
+    if (azimuth > 60 && azimuth < 300) {c = 1500;direction = 0;}
     return c;
 }
 
@@ -147,6 +200,7 @@ int main (void)
   duration<double> time_picture = duration_cast<duration<double>>(time_current - time_last_picture);
   duration<double> time_mow = duration_cast<duration<double>>(time_current - time_last_mowing);
   duration<double> time_locate = duration_cast<duration<double>>(time_current - time_last_locate);
+  selftest ();
   while (time_span.count() < 10)
   {
     controlupdate ();
