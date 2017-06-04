@@ -1,4 +1,4 @@
-/* Revised 050117.001
+/* Revised 170604.cc001
 To compile use:
 g++ -Wall -lpthread -o mowerpigpio mowerpigpio.cpp -lpigpio -lrt -std=c++14
 
