@@ -1,4 +1,4 @@
-/* Revised 170604.cc001
+/* Revised 170604.001
 To compile use:
 g++ -Wall -lpthread -o mowerpigpio mowerpigpio.cpp -lpigpio -lrt -std=c++14
 
@@ -61,6 +61,13 @@ using namespace std::chrono;
 
 /* Read the keybord so that it can be used as a remote control up down for move left right to turn.  "z" to stop program
  Assumes "a" = 97; "z" = 122; "w" = 119; "s" = 115.*/
+// Takes a picture and texts it to the number in the .sh file.
+
+int pic01 (void)
+{
+	system ("bash ./Picture_with_email.sh");
+	return (0);
+}
 
 int selftest (void)
 {
@@ -113,6 +120,7 @@ int selftest (void)
   gpioServo (23, 1500);//Centers the steering
   gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
   pic01 ();
+  return (0);
 }
 
 int readkey (void)
@@ -122,13 +130,6 @@ int readkey (void)
 	return (0);
 }
 
-// Takes a picture and texts it to the number in the .sh file.
-
-int pic01 (void)
-{
-	system ("bash ./Picture_with_email.sh");
-	return (0);
-}
 
 // Reads Sensors and Updates Controls
 int controlupdate (void)
