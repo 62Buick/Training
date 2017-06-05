@@ -60,6 +60,22 @@ using namespace std::chrono;
     steady_clock::time_point time_last_picture;
     steady_clock::time_point time_last_mowing;
 
+// Initialize PIGPIO.
+  gpioInitialise ();
+  gpioSetMode (17,PI_OUTPUT); // Mower control - GPIO17
+  gpioSetMode (18,PI_OUTPUT); // Drive Motor Power control - GPIO18 ** Currently On - Off may want to use a Variable Drive
+  gpioSetMode (27,PI_OUTPUT); // Drive Motor Forward/Reverse - GPIO27  
+  gpioSetMode (12,PI_INPUT); // Front Detect Pin Number -  Normally Open switch to 3V on GPIO12 
+  gpioSetMode (16,PI_INPUT); // Left Detect Pin Number - Normally Open switch to 3V on GPIO16
+  gpioSetMode (20,PI_INPUT); // Right Detect Pin Number - Normally Open switch to 3V on GPIO20
+  gpioSetMode (21,PI_INPUT); // Rear Detect Pin Number - Normally Open switch to 3V on GPIO21
+  gpioSetPullUpDown (12,PI_PUD_DOWN);
+  gpioSetPullUpDown (16,PI_PUD_DOWN);
+  gpioSetPullUpDown (20,PI_PUD_DOWN);
+  gpioSetPullUpDown (21,PI_PUD_DOWN);
+  gpioPWM (23,128); //Activate and set steering servo plugged into pin 23 to 0
+  gpioServo (23, 1500); 
+
 // Takes a picture and texts it to the number in the .sh file.
 int pic01 (void)
 {
@@ -182,20 +198,6 @@ int steering (int azimuth)
 int main (void)
 {
   time_boot = steady_clock::now();
-  gpioInitialise ();
-  gpioSetMode (17,PI_OUTPUT); // Mower control - GPIO17
-  gpioSetMode (18,PI_OUTPUT); // Drive Motor Power control - GPIO18 ** Currently On - Off may want to use a Variable Drive of sorts for trimming
-  gpioSetMode (27,PI_OUTPUT); // Drive Motor Forward/Reverse - GPIO27  
-  gpioSetMode (12,PI_INPUT); // Front Detect Pin Number -  Normally Open switch to 3V on GPIO12 
-  gpioSetMode (16,PI_INPUT); // Left Detect Pin Number - Normally Open switch to 3V on GPIO16
-  gpioSetMode (20,PI_INPUT); // Right Detect Pin Number - Normally Open switch to 3V on GPIO20
-  gpioSetMode (21,PI_INPUT); // Rear Detect Pin Number - Normally Open switch to 3V on GPIO21
-  gpioSetPullUpDown (12,PI_PUD_DOWN);
-  gpioSetPullUpDown (16,PI_PUD_DOWN);
-  gpioSetPullUpDown (20,PI_PUD_DOWN);
-  gpioSetPullUpDown (21,PI_PUD_DOWN);
-  gpioPWM (23,128); //Activate and set steering servo plugged into pin 23 to 0
-  gpioServo (23, 1500); 
   time_current = steady_clock::now();
   duration<double> time_span = duration_cast<duration<double>>(time_current - time_boot);
   duration<double> time_picture = duration_cast<duration<double>>(time_current - time_last_picture);
