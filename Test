@@ -202,7 +202,7 @@ int main (void)
   duration<double> time_mow = duration_cast<duration<double>>(time_current - time_last_mowing);
   duration<double> time_locate = duration_cast<duration<double>>(time_current - time_last_locate);
   selftest ();
-  while (time_span.count() < 10)
+  while (time_span.count() < 20)
   {
     controlupdate ();
     currentposition = steering (direction);
@@ -223,13 +223,16 @@ int main (void)
     time_picture = duration_cast<duration<double>>(time_current - time_last_picture);
     time_mow = duration_cast<duration<double>>(time_current - time_last_mowing);
     time_locate = duration_cast<duration<double>>(time_current - time_last_locate);
-    if (time_picture.count > 10) {system ("bash ./Picture.sh");} //Saves a picture
+    if (time_picture.count > 10) 
+      {pic02 (); 
+      time_last_picture = duration_cast<duration<double>>(time_current);
+      } //Saves a picture
   }
   // Needs a reset plan if the safety goes off.
   gpioWrite (17, 0); //Shut the mower off.
   gpioWrite (18, 0); //Shut the move off.
   gpioWrite (27, 1); //Set the drive to forward.
-  gpioServo (23, 1500);
+  gpioServo (23, 1500);// Centers the Servo
   gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds 
   gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
   gpioSleep(PI_TIME_RELATIVE, 0, 200000); // sleep for 0.2 seconds
