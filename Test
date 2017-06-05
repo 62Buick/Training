@@ -2,10 +2,11 @@
 To compile use:
 g++ -Wall -lpthread -o mowerpigpio mowerpigpio.cpp -lpigpio -lrt -std=c++14
 
-This program is designed to contol a lawn mower.  The goal is to mow the yard with no user feedback.
+This program is designed to contol a lawn mower.  The goal is to mow the yard with no measley human interaction.
 
 The current status is that it will read 4 sensors on the mower to monitor contact with objects and stop or turn away from them.
-The detail of how the switches are wired are show in the initialization section.c
+
+The detail of how the switches are wired are show in the initialization section.
 
 The pi will also take a picture and save it or email it to a specified address.  I plan to eventually use the save photos to look
 for obstructions and identify the mowers location and orientation.  Location will be x,y,z and orientation will track a heading.
@@ -59,13 +60,17 @@ using namespace std::chrono;
     steady_clock::time_point time_last_picture;
     steady_clock::time_point time_last_mowing;
 
-/* Read the keybord so that it can be used as a remote control up down for move left right to turn.  "z" to stop program
- Assumes "a" = 97; "z" = 122; "w" = 119; "s" = 115.*/
 // Takes a picture and texts it to the number in the .sh file.
-
 int pic01 (void)
 {
 	system ("bash ./Picture_with_email.sh");
+	return (0);
+}
+
+// Takes a picture and saves it.
+int pic02 (void)
+{
+	system ("bash ./Picture.sh");
 	return (0);
 }
 
@@ -137,19 +142,14 @@ int controlupdate (void)
         mower_on = 1;
         move_on = 1;
 	forward_reverse = 1;
-        // readkey (); // Make these 2 lines a note to switch to only detector control.
-        // cout << "Results of Keyboard read " << kbchar << " = ASCII Number " << kbnumber << endl;
-        // cout << "Set Jumper for GPIO12, 16, 20 , or 21 " << endl;  
-        //  *** cin >> kbchar;
         left_detect = gpioRead(16);
         right_detect = gpioRead(20);  
         rear_detect = gpioRead(21);  
         front_detect = gpioRead(12);
 	cout << "Front Left Right Rear" << endl;
 	cout << front_detect << "     " << left_detect << "    " << right_detect << "     " << rear_detect << endl;
-        //  *** cin >> kbchar;
-        if(left_detect == 1||kbnumber == 115) {mower_on = 0; direction = (direction + 10);}
-        if(right_detect == 1||kbnumber == 97) {mower_on = 0; direction = (direction - 10);}
+        if(left_detect == 1) {mower_on = 0; direction = (direction + 10);}
+        if(right_detect == 1) {mower_on = 0; direction = (direction - 10);}
         if(left_detect == 0 && right_detect == 0) {direction = 0;}
         if(front_detect == 1) {mower_on = 0;forward_reverse = 0;direction = (direction - 10);} 
         if(rear_detect == 1) {mower_on = 0;safety = 1;pic01 ();}
@@ -206,7 +206,6 @@ int main (void)
   {
     controlupdate ();
     currentposition = steering (direction);
-    // system ("bash ./Picture.sh"); Saves a picture
     cout << "I have been running for " << time_span.count() << " seconds." << endl;
     gpioServo (23, currentposition);
     cout << "Direction : " << direction << endl;
@@ -224,6 +223,7 @@ int main (void)
     time_picture = duration_cast<duration<double>>(time_current - time_last_picture);
     time_mow = duration_cast<duration<double>>(time_current - time_last_mowing);
     time_locate = duration_cast<duration<double>>(time_current - time_last_locate);
+    if (time_picture.count > 10) {system ("bash ./Picture.sh");} //Saves a picture
   }
   // Needs a reset plan if the safety goes off.
   gpioWrite (17, 0); //Shut the mower off.
